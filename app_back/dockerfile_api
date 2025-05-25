@@ -1,0 +1,14 @@
+FROM python:3.9
+
+WORKDIR /app
+
+# Solo esta línea es necesaria
+COPY app_back/requirements_api.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Copiar main.py y carpetas necesarias
+COPY app_back/main.py /app/main.py
+COPY connections /app/connections
+COPY models /app/models
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

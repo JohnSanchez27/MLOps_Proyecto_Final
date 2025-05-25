@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  fastapi:
+    build:
+      context: .
+      dockerfile: app_back/dockerfile_api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+    environment:
+      - MYSQL_HOST=mysql
+      - PYTHONUNBUFFERED=1
+      - TZ=America/Bogota
+    networks:
+      - mlops_net
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: app_front/dockerfile_stream
+    ports:
+      - "8501:8501"
+    depends_on:
+      - fastapi
+    environment:
+      - MYSQL_HOST=mysql
+      - PYTHONUNBUFFERED=1
+      - TZ=America/Bogota
+    networks:
+      - mlops_net
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Compag*87
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - mlops_net
+
+networks:
+  mlops_net:
+    driver: bridge
+
+volumes:
+  mysql_data:

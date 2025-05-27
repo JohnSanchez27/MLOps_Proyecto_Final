@@ -36,10 +36,16 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: Compag*87
+      MYSQL_DATABASE: mlflow
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - mlops_net
 
@@ -61,8 +67,9 @@ services:
       - "3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/dashboards:/etc/grafana/dashboards
+      - ./grafana/provisioning/dashboards.yml:/etc/grafana/provisioning/dashboards.yml
+      - ./grafana/provisioning/dashboards:/etc/grafana/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -71,7 +78,8 @@ services:
 
 networks:
   mlops_net:
-    driver: bridge
+    # driver: bridge
+    external: true
 
 volumes:
   mysql_data:

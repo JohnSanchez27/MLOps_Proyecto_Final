@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 
 PASSWORD = 'Compag*87'
-HOST = 'mysql'  # Este es el nombre del servicio Docker, no 'localhost'
+HOST = 'mysql'  # Este es el nombre del servicio Docker, no 'localhost' mysql
 
 # Esperar hasta que MySQL esté disponible
 def esperar_mysql():
@@ -18,6 +18,7 @@ def esperar_mysql():
             time.sleep(2)
 
 esperar_mysql()
+
 
 # Crear bases si no existen
 engine_server = create_engine(f'mysql+pymysql://root:{PASSWORD}@{HOST}:3306')

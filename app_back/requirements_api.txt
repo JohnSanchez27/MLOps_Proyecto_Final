@@ -6,3 +6,4 @@ sqlalchemy
 pymysql
 cryptography
 scikit-learn
+prometheus_fastapi_instrumentator

@@ -1,6 +1,12 @@
 import streamlit as st
 import pandas as pd
 import requests
+import shap
+import matplotlib.pyplot as plt
+import joblib
+import json
+from connections import connectionsdb
+
 
 
 st.set_page_config(page_title="Predicción Inmobiliaria", layout="centered")
@@ -39,3 +45,30 @@ if st.button("Predecir Precio"):
             st.error(f"Error en la predicción: {response.text}")
     except Exception as e:
         st.error(f"No se pudo conectar con el servicio: {e}")
+
+
+if st.button("Ver interpretación SHAP del mejor modelo"):
+    try:
+        cleandatadb_engine = connectionsdb[1]
+        query = "SELECT state, status, bed, bath, house_size, acre_lot, zip_code FROM train_set"
+        df_train = pd.read_sql(query, con=cleandatadb_engine)
+
+        X = pd.get_dummies(df_train, drop_first=True)
+
+        with open("models/columnas_entrenamiento.json") as f:
+            columnas = json.load(f)
+
+        X = X.reindex(columns=columnas, fill_value=0)
+
+        model = joblib.load("models/modelo_mejor.pkl")
+
+        explainer = shap.Explainer(model, X)
+        shap_values = explainer(X)
+
+        st.subheader("📈 Interpretabilidad con SHAP")
+        fig, ax = plt.subplots()
+        shap.plots.beeswarm(shap_values, show=False)
+        st.pyplot(fig)
+
+    except Exception as e:
+        st.error(f"Error generando SHAP: {e}")

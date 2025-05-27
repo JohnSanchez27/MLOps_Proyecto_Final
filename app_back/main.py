@@ -7,9 +7,12 @@ import json
 import datetime
 from connections import connectionsdb
 from sqlalchemy import text
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
 cleandatadb_engine = connectionsdb[1]
+
+Instrumentator().instrument(app).expose(app)
 
 MODEL_PATH = "models/modelo_mejor.pkl"
 COLUMNS_PATH = "models/columnas_entrenamiento.json"

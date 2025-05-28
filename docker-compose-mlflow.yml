@@ -1,3 +1,4 @@
+version: '3.8'
 
 services:  
   minio:
@@ -39,12 +40,11 @@ services:
       --port 5000
       --serve-artifacts
     environment:
-      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      MLFLOW_S3_ENDPOINT_URL: http://localhost:9000
       AWS_ACCESS_KEY_ID: admin
       AWS_SECRET_ACCESS_KEY: supersecret
+      MLFLOW_ARTIFACT_URI: s3://mlflows3
     depends_on:
-      mysql:
-        condition: service_healthy
       minio:
         condition: service_started
     healthcheck:

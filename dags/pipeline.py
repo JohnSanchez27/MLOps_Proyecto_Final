@@ -4,11 +4,22 @@ import datetime
 import os
 import joblib
 import json
+import os
+import sys
+import mlflow
+import mlflow.sklearn
+
 from sqlalchemy import text
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from connections import connectionsdb
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime, timedelta
+
+
+sys.path.append(os.path.dirname(__file__))
 
 # Configuración
 GROUP_NUMBER = 7
@@ -18,6 +29,13 @@ TIMEOUT = 20
 # Conexiones
 rawdatadb_engine = connectionsdb[0]
 cleandatadb_engine = connectionsdb[1]
+
+os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://minio:9000'
+os.environ['AWS_ACCESS_KEY_ID'] = 'admin'
+os.environ['AWS_SECRET_ACCESS_KEY'] = 'supersecret'
+
+mlflow.set_tracking_uri("http://mlflow_server:5000")
+mlflow.set_experiment("Default")
 
 # ----- FASE 1: EXTRACCIÓN -----
 
@@ -172,6 +190,9 @@ def crear_tabla_metricas_si_no_existe():
 
 def entrenar_y_guardar_modelo():
     try:
+        mlflow.set_tracking_uri("http://mlflow_server:5000")
+        mlflow.set_experiment("entrenamiento_inmobiliario")
+
         ultimo_batch = obtener_ultimo_batch()
         query_ultimo = f"SELECT COUNT(*) AS total FROM datos_crudos WHERE batch_number = {ultimo_batch}"
         tam_ultimo = pd.read_sql(query_ultimo, con=rawdatadb_engine)["total"].iloc[0]
@@ -201,22 +222,32 @@ def entrenar_y_guardar_modelo():
         with open("models/columnas_entrenamiento.json", "w") as f:
             json.dump(list(X_train.columns), f)
 
-        model = LinearRegression()
-        model.fit(X_train, y_train)
+        with mlflow.start_run():
+            model = LinearRegression()
+            model.fit(X_train, y_train)
 
-        y_pred = model.predict(X_val)
-        mse = mean_squared_error(y_val, y_pred)
-        r2 = r2_score(y_val, y_pred)
+            y_pred = model.predict(X_val)
+            mse = mean_squared_error(y_val, y_pred)
+            r2 = r2_score(y_val, y_pred)
 
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        modelo_filename = f"modelo_linear_regression_{timestamp}.pkl"
-        joblib.dump(model, os.path.join("models", modelo_filename))
-        print(f"Modelo guardado como {modelo_filename}")
+            mlflow.log_param("modelo", "LinearRegression")
+            mlflow.log_param("batch_ultimo", tam_ultimo)
+            mlflow.log_param("batch_previos", tam_previos)
+            mlflow.log_metric("mse", mse)
+            mlflow.log_metric("r2", r2)
+
+            mlflow.sklearn.log_model(model, "modelo_regresion")
+
+            print(f"Modelo registrado en MLflow con mse={mse:.4f} y r2={r2:.4f}")
 
         crear_tabla_metricas_si_no_existe()
 
         best_r2 = pd.read_sql("SELECT MAX(r2) AS max_r2 FROM modelo_metricas", con=cleandatadb_engine)["max_r2"].iloc[0]
         es_mejor = best_r2 is None or r2 > best_r2
+
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        modelo_filename = f"modelo_linear_regression_{timestamp}.pkl"
+        joblib.dump(model, os.path.join("models", modelo_filename))
 
         with cleandatadb_engine.connect() as conn:
             if es_mejor:
@@ -241,7 +272,40 @@ def entrenar_y_guardar_modelo():
     except Exception as e:
         print(f"Error durante el entrenamiento o guardado del modelo: {e}")
 
-if __name__ == "__main__":
-    ejecutar_extraccion_condicional()
-    limpiar_dividir_y_guardar()
-    entrenar_y_guardar_modelo()
+
+default_args = {
+    "owner": "John_Sanchez",
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=1),
+}
+
+with DAG(
+    dag_id="pipeline_entrenamiento_unificado",
+    default_args=default_args,
+    description="Pipeline completo: extracción → limpieza → entrenamiento",
+    schedule_interval=None,
+    start_date=datetime(2025, 5, 27),
+    catchup=False,
+    tags=["mlops"],
+) as dag:
+
+    t1 = PythonOperator(
+        task_id="fase_1_extraccion",
+        python_callable=ejecutar_extraccion_condicional
+    )
+
+    t2 = PythonOperator(
+        task_id="fase_2_limpieza_y_division",
+        python_callable=limpiar_dividir_y_guardar
+    )
+
+    t3 = PythonOperator(
+        task_id="fase_3_entrenamiento_modelo",
+        python_callable=entrenar_y_guardar_modelo
+    )
+
+    t1 >> t2 >> t3
+

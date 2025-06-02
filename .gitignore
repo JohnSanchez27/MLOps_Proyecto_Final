@@ -4,9 +4,6 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
-env/
-venv/
-.venv/
 build/
 develop-eggs/
 dist/
@@ -24,5 +21,4 @@ var/
 logs/
 minio/*
 logs/*
-
 *.log

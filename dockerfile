@@ -1,19 +1,23 @@
-# Imagen base de Airflow
+# Usamos la imagen de Airflow como base
 FROM apache/airflow:2.6.0-python3.9
+#FROM apache/airflow:slim-3.0.1rc1-python3.11
 
-# Cambiar a root temporalmente para instalación
-USER root
+USER root 
+RUN mkdir /work && chown airflow: /work
+WORKDIR /work
 
-# Copiar el archivo de dependencias
-COPY requirements.txt /work/requirements.txt
-
-# Instalar los paquetes necesarios sin usar --user
-RUN pip install --no-cache-dir -r /work/requirements.txt
-
-# Volver al usuario airflow (buena práctica de seguridad)
 USER airflow
 
-# Exponer el puerto web de Airflow
-EXPOSE 8080
+# Copiar el archivo requirements.txt al contenedor
+COPY ./requirements.txt /work/requirements.txt
 
+RUN ls -l /work
+# Instalar dependencias adicionales desde requirements.txt
+# Asegúrate de que tu requirements.txt no incluya jupyter o jupyterlab si decides excluirlos
+RUN pip install -r /work/requirements.txt
+
+# Exponer puertos necesarios (ejemplo: el puerto web de Airflow y otros que necesites)
+EXPOSE 8080 8081 8082
+
+# Utilizar el ENTRYPOINT y CMD por defecto de Airflow
 

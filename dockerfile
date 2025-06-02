@@ -1,5 +1,5 @@
-# Usamos la imagen de Airflow como base
 FROM apache/airflow:2.6.0-python3.9
+
 #FROM apache/airflow:slim-3.0.1rc1-python3.11
 
 USER root 

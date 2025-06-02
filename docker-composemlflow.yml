@@ -1,6 +1,25 @@
 version: '3.8'
 
 services:  
+
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Compag*87
+      MYSQL_DATABASE: mlflow
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mlops_net
+
   minio:
     container_name: minio
     image: quay.io/minio/minio:latest # server /data --console-address ":9001"
@@ -56,6 +75,7 @@ services:
       - mlops_net
 
 volumes:
+  mysql_data:
   minio_data:
 
 networks:

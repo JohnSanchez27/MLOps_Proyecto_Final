@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+
   fastapi:
     build:
       context: .
@@ -30,25 +31,6 @@ services:
       - TZ=America/Bogota
     networks:
       - mlops_net
-
-  mysql:
-    image: mysql:8.0
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: Compag*87
-      MYSQL_DATABASE: mlflow
-    ports:
-      - "3307:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - mlops_net
-
 
   prometheus:
     image: prom/prometheus

@@ -188,6 +188,8 @@ def crear_tabla_metricas_si_no_existe():
     with cleandatadb_engine.connect() as conn:
         conn.execute(text(sql))
 
+from mlflow.exceptions import MlflowException
+
 def entrenar_y_guardar_modelo():
     try:
         mlflow.set_tracking_uri("http://mlflow_server:5000")
@@ -222,7 +224,7 @@ def entrenar_y_guardar_modelo():
         with open("models/columnas_entrenamiento.json", "w") as f:
             json.dump(list(X_train.columns), f)
 
-        with mlflow.start_run():
+        with mlflow.start_run() as run:
             model = LinearRegression()
             model.fit(X_train, y_train)
 
@@ -239,6 +241,9 @@ def entrenar_y_guardar_modelo():
             mlflow.sklearn.log_model(model, "modelo_regresion")
 
             print(f"Modelo registrado en MLflow con mse={mse:.4f} y r2={r2:.4f}")
+
+            # Aquí obtengo el id del run
+            run_id = run.info.run_id
 
         crear_tabla_metricas_si_no_existe()
 
@@ -266,6 +271,51 @@ def entrenar_y_guardar_modelo():
             best_path = os.path.join("models", "modelo_mejor.pkl")
             joblib.dump(model, best_path)
             print("Nuevo modelo es el mejor y fue guardado como modelo_mejor.pkl")
+
+            # -------------------- NUEVO BLOQUE PARA ETIQUETAR EN PRODUCCIÓN ---------------------
+
+            model_name = "modelo_regresion_produccion"
+
+            # Registrar modelo en el registro si no existe
+            try:
+                mlflow.register_model(f"runs:/{run_id}/modelo_regresion", model_name)
+                print(f"Modelo registrado en el Model Registry bajo el nombre '{model_name}'")
+            except MlflowException:
+                # Ya existe, seguimos igual
+                print(f"El modelo '{model_name}' ya está registrado en el Model Registry.")
+
+            # Obtener versiones existentes del modelo
+            client = mlflow.tracking.MlflowClient()
+            versions = client.get_latest_versions(model_name, stages=["Production"])
+
+            # Archivar versiones anteriores en producción
+            for v in versions:
+                if v.run_id != run_id:
+                    client.transition_model_version_stage(
+                        name=model_name,
+                        version=v.version,
+                        stage="Archived"
+                    )
+                    print(f"Modelo versión {v.version} archivado.")
+
+            # Buscar versión actual recién registrada
+            all_versions = client.get_latest_versions(model_name)
+            current_version = None
+            for v in all_versions:
+                if v.run_id == run_id:
+                    current_version = v.version
+                    break
+
+            if current_version is not None:
+                client.transition_model_version_stage(
+                    name=model_name,
+                    version=current_version,
+                    stage="Production"
+                )
+                print(f"Modelo versión {current_version} marcado como Production.")
+            else:
+                print("No se encontró la versión recién registrada para asignar etapa Production.")
+
         else:
             print("Modelo entrenado no supera al anterior. Se conserva el mejor previo.")
 

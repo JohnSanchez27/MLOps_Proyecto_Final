@@ -108,7 +108,7 @@ def fetch_and_store_batch(group_number, day, batch_number):
                 print(f"Columna '{col}' contiene dicts. Se elimina.")
                 df.drop(columns=[col], inplace=True)
 
-        df["fetch_date"] = datetime.datetime.now()
+        df["fetch_date"] = datetime.now()
         df["group_number"] = group_number
         df["day"] = day
         df["batch_number"] = batch_number
@@ -245,7 +245,7 @@ def entrenar_y_guardar_modelo():
         best_r2 = pd.read_sql("SELECT MAX(r2) AS max_r2 FROM modelo_metricas", con=cleandatadb_engine)["max_r2"].iloc[0]
         es_mejor = best_r2 is None or r2 > best_r2
 
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         modelo_filename = f"modelo_linear_regression_{timestamp}.pkl"
         joblib.dump(model, os.path.join("models", modelo_filename))
 
@@ -257,7 +257,7 @@ def entrenar_y_guardar_modelo():
                 "modelo": modelo_filename,
                 "mse": mse,
                 "r2": r2,
-                "fecha_entrenamiento": datetime.datetime.now(),
+                "fecha_entrenamiento": datetime.now(),
                 "es_mejor": es_mejor
             }])
             df_metrics.to_sql("modelo_metricas", con=conn, if_exists="append", index=False)

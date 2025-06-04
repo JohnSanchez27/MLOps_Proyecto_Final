@@ -1,29 +1,26 @@
-# version: '3.8'
+version: '3.8'
 
-services:  
-
-  mysql:
-    image: mysql:8.0
-    restart: always
+services:
+  mysql-server:
+    image: johnsanchez27/mysql-api:latest
+    container_name: mysql-server
     environment:
-      MYSQL_ROOT_PASSWORD: Compag*87
-      MYSQL_DATABASE: mlflow
+      MYSQL_ROOT_PASSWORD: Compaq*87
     ports:
-      - "3307:3306"
+      - "8082:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./mlflow/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: ["mysqld", "--datadir=/var/lib/mysql/data"]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
-      retries: 5
-    networks:
-      - mlops_net
+      retries: 10
+    restart: always
 
   minio:
     container_name: minio
-    image: quay.io/minio/minio:latest # server /data --console-address ":9001"
+    image: quay.io/minio/minio:latest
     entrypoint: /bin/sh
     command: >
       -c "
@@ -41,20 +38,16 @@ services:
       - "8083:9001"   # Consola web
     volumes:
       - ./minio:/data
-    restart: unless-stopped
-    networks:
-      - mlops_net
-  
-  mlflow_serv:
-    build:
-      context: ./mlflow
-      dockerfile: dockerfile_mlflow
-    container_name: mlflow_server
+    restart: always
+
+  mlflow-serv:
+    image: johnsanchez27/mlflow-api:latest
+    container_name: mlflow-server
     ports:
       - "8084:5000"
     command: >
       mlflow server
-      --backend-store-uri mysql+pymysql://root:Compag*87@mysql:3306/mlflow
+      --backend-store-uri mysql+pymysql://root:Compaq*87@localhost:3306/mlflow
       --default-artifact-root s3://mlflows3
       --host 0.0.0.0
       --port 5000
@@ -63,22 +56,14 @@ services:
       MLFLOW_S3_ENDPOINT_URL: http://localhost:9000
       AWS_ACCESS_KEY_ID: admin
       AWS_SECRET_ACCESS_KEY: supersecret
-      MLFLOW_ARTIFACT_URI: s3://mlflows3
     depends_on:
-      minio:
-        condition: service_started
+      - mysql
+      - minio
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-    networks:
-      - mlops_net
 
 volumes:
   mysql_data:
-  minio_data:
-
-networks:
-  mlops_net:
-    external: true

@@ -62,13 +62,22 @@ if st.button("Ver interpretación SHAP del mejor modelo"):
 
         model = joblib.load("models/modelo_mejor.pkl")
 
-        explainer = shap.Explainer(model, X)
-        shap_values = explainer(X)
+        # Usa una muestra pequeña como fondo para KernelExplainer
+        background = X.sample(100, random_state=42)
+
+        # Define la función predict del modelo (output 1D)
+        def model_predict(data):
+            return model.predict(data)
+
+        explainer = shap.KernelExplainer(model_predict, background)
+        shap_values = explainer.shap_values(X.sample(50, random_state=42))  # Para acelerar, usa solo 50 muestras
 
         st.subheader("📈 Interpretabilidad con SHAP")
         fig, ax = plt.subplots()
-        shap.plots.beeswarm(shap_values, show=False)
+        shap.summary_plot(shap_values, X.sample(50, random_state=42), show=False)
+        plt.tight_layout()
         st.pyplot(fig)
+        plt.clf()
 
     except Exception as e:
         st.error(f"Error generando SHAP: {e}")

@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-composemlflow.yml -o komposefiles/ --volumes hostPath
+    kompose.version: 1.26.0 (40646f47)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mysql-server
+  name: mysql-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: mysql-server
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-composemlflow.yml -o komposefiles/ --volumes hostPath
+        kompose.version: 1.26.0 (40646f47)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: mysql-server
+    spec:
+      containers:
+        - args:
+            - mysqld
+            - --datadir=/var/lib/mysql/data
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: Compaq*87
+          image: johnsanchez27/mysql-api:latest
+          livenessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+            failureThreshold: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: mysql-server
+          ports:
+            - containerPort: 3306
+          resources: {}
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-data
+      restartPolicy: Always
+      volumes:
+        - hostPath:
+            path: /home/estudiante/Documents/proyecto_final/MLOps_Proyecto_Final
+          name: mysql-data
+status: {}

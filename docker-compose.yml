@@ -1,71 +1,31 @@
-#version: '3.8'
+version: '3.8'
 
 services:
 
   fastapi:
-    build:
-      context: .
-      dockerfile: app_back/dockerfile_api
+    image: johnsanchez27/app-back:latest
+    container_name: fastapi-server
     ports:
       - "8000:8000"
-    depends_on:
-      - mysql
+
     environment:
-      - MYSQL_HOST=mysql
+      - MYSQL_HOST=ttp://10.43.101.200:31306
       - PYTHONUNBUFFERED=1
       - TZ=America/Bogota
       - AWS_ACCESS_KEY_ID=admin
       - AWS_SECRET_ACCESS_KEY=supersecret
-      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
-    networks:
-      - mlops_net
+      - MLFLOW_S3_ENDPOINT_URL=http://10.43.101.200:31900
+  
 
   streamlit:
-    build:
-      context: .
-      dockerfile: app_front/dockerfile_stream
+    image: johnsanchez27/app-front:latest
+    container_name: frontend-server
     ports:
       - "8501:8501"
-    depends_on:
-      - fastapi
     environment:
-      - MYSQL_HOST=mysql
+      - MYSQL_HOST=10.43.101.200:31306
       - PYTHONUNBUFFERED=1
       - TZ=America/Bogota
-    networks:
-      - mlops_net
+  
 
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-    networks:
-      - mlops_net
 
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/dashboards.yml:/etc/grafana/provisioning/dashboards.yml
-      - ./grafana/provisioning/dashboards:/etc/grafana/dashboards
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    networks:
-      - mlops_net
-
-networks:
-  mlops_net:
-    # driver: bridge
-    external: true
-
-volumes:
-  mysql_data:
-  grafana_data:

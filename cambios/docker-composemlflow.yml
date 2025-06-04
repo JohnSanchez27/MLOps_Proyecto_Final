@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  mysql-server:
+    image: johnsanchez27/mysql-api:latest
+    container_name: mysql-server
+    environment:
+      MYSQL_ROOT_PASSWORD: Compaq*87
+    ports:
+      - "8082:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: ["mysqld", "--datadir=/var/lib/mysql/data"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: always
+
+  minio:
+    container_name: minio
+    image: quay.io/minio/minio:latest
+    entrypoint: /bin/sh
+    command: >
+      -c "
+      minio server /data --console-address ':9001' &
+      sleep 10 &&
+      mc alias set local http://localhost:9000 admin supersecret &&
+      mc mb -p local/mlflows3 || true &&
+      tail -f /dev/null
+      "
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: supersecret
+    ports:
+      - "9000:9000"   # API de objetos
+      - "8083:9001"   # Consola web
+    volumes:
+      - ./minio:/data
+    restart: always
+
+  mlflow-serv:
+    image: johnsanchez27/mlflow-api:latest
+    container_name: mlflow-server
+    ports:
+      - "8084:5000"
+    command: >
+      mlflow server
+      --backend-store-uri mysql+pymysql://root:Compaq*87@localhost:3306/mlflow
+      --default-artifact-root s3://mlflows3
+      --host 0.0.0.0
+      --port 5000
+      --serve-artifacts
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://localhost:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret
+    depends_on:
+      - mysql
+      - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql_data:

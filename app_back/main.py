@@ -11,7 +11,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 import mlflow.pyfunc
 from mlflow.tracking import MlflowClient
 
-MLFLOW_TRACKING_URI = "http://mlflow_server:5000"  # igual que en el script de entrenamiento
+MLFLOW_TRACKING_URI = "http://10.43.101.200:31500"  # igual que en el script de entrenamiento
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 MODEL_NAME = "modelo_regresion_produccion"
 client = MlflowClient()

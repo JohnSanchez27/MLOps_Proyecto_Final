@@ -8,6 +8,13 @@ import datetime
 from connections import connectionsdb
 from sqlalchemy import text
 from prometheus_fastapi_instrumentator import Instrumentator
+import mlflow.pyfunc
+from mlflow.tracking import MlflowClient
+
+MLFLOW_TRACKING_URI = "http://mlflow_server:5000"  # igual que en el script de entrenamiento
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+MODEL_NAME = "modelo_regresion_produccion"
+client = MlflowClient()
 
 app = FastAPI()
 cleandatadb_engine = connectionsdb[1]
@@ -33,18 +40,29 @@ def root():
 @app.post("/predecir")
 def predecir_precio(datos: HouseFeatures):
     try:
-        if not os.path.exists(MODEL_PATH) or not os.path.exists(COLUMNS_PATH):
-            raise FileNotFoundError("Faltan archivos necesarios. Entrena primero el modelo.")
+        # Obtener versión Production del modelo
+        versions = client.get_latest_versions(MODEL_NAME, stages=["Production"])
+        if not versions:
+            raise HTTPException(status_code=500, detail="No se encontró modelo en Production en MLflow")
 
-        model = joblib.load(MODEL_PATH)
+        prod_version = versions[0]  # asumimos solo una en Production
+        model_uri = f"models:/{MODEL_NAME}/Production"
 
+        # Cargar modelo desde MLflow
+        model = mlflow.pyfunc.load_model(model_uri)
+
+        # Cargar columnas de entrenamiento (puedes dejar igual o mejorar almacenándolas en MLflow)
+        if not os.path.exists(COLUMNS_PATH):
+            raise FileNotFoundError("Archivo columnas_entrenamiento.json no encontrado")
         with open(COLUMNS_PATH, "r") as f:
             columnas = json.load(f)
 
+        # Preparar datos igual que antes
         df = pd.DataFrame([datos.dict()])
         df_encoded = pd.get_dummies(df, drop_first=True)
         df_encoded = df_encoded.reindex(columns=columnas, fill_value=0)
 
+        # Predecir con el modelo cargado desde MLflow
         prediccion = model.predict(df_encoded)[0]
 
         crear_tabla_predicciones_si_no_existe()

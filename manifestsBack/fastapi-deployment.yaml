@@ -34,7 +34,7 @@ spec:
               value: "1"
             - name: TZ
               value: America/Bogota
-          image: johnsanchez27/app-fast:v2
+          image: johnsanchez27/app-fast:v3
           name: fastapi-server
           ports:
             - containerPort: 8000

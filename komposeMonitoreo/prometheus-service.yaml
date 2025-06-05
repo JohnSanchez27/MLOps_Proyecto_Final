@@ -9,10 +9,12 @@ metadata:
     io.kompose.service: prometheus
   name: prometheus
 spec:
+  type: NodePort
   ports:
     - name: "9090"
       port: 9090
       targetPort: 9090
+      nodePort: 31400
   selector:
     io.kompose.service: prometheus
 status:

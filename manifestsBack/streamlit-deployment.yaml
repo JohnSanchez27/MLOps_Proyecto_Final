@@ -28,7 +28,7 @@ spec:
               value: "1"
             - name: TZ
               value: America/Bogota
-          image: johnsanchez27/app-front:v2
+          image: johnsanchez27/app-front:v3
           name: frontend-server
           ports:
             - containerPort: 8501

@@ -2,6 +2,6 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  - job_name: 'prometheus'
+  - job_name: 'fastapi'
     static_configs:
       - targets: ['10.43.101.179:31800']

@@ -4,7 +4,6 @@ metadata:
   annotations:
     kompose.cmd: kompose convert -f docker-composeMonitoreo.yml -o komposeMonitoreo/ --volumes hostPath
     kompose.version: 1.26.0 (40646f47)
-  creationTimestamp: null
   labels:
     io.kompose.service: prometheus
   name: prometheus
@@ -17,10 +16,6 @@ spec:
     type: Recreate
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert -f docker-composeMonitoreo.yml -o komposeMonitoreo/ --volumes hostPath
-        kompose.version: 1.26.0 (40646f47)
-      creationTimestamp: null
       labels:
         io.kompose.service: prometheus
     spec:
@@ -29,13 +24,13 @@ spec:
           name: prometheus
           ports:
             - containerPort: 9090
-          resources: {}
           volumeMounts:
-            - mountPath: /etc/prometheus/prometheus.yml
-              name: prometheus-hostpath0
+            - mountPath: /etc/prometheus/
+              name: prometheus-config
       restartPolicy: Always
       volumes:
-        - hostPath:
-            path: /home/estudiante/Documents/proyecto-final-K/MLOps_Proyecto_Final/prometheus/prometheus.yml
-          name: prometheus-hostpath0
-status: {}
+        - name: prometheus-config
+          hostPath:
+            path: /home/estudiante/proyecto_final/MLOps_Proyecto_Final/prometheus
+            
+

@@ -128,6 +128,9 @@ El archivo orquesta las siguientes tareas:
 * **Prometheus:** expone métricas del API FastAPI.
 * **Grafana:** dashboard listo para observación del rendimiento y alertas.
 
+![Prometheus](imagenes/Prometheus.png)
+![Grafana](imagenes/Observabilidad_Graphana.png)
+
 ---
 
 ## Interpretabilidad

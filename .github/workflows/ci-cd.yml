@@ -1,0 +1,40 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push app-front image
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/app-front:latest ./app_front
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/app-front:latest
+
+    - name: Build and push app-fast image
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/app-fast:latest ./app_back
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/app-fast:latest
+
+    - name: Build and push mysql-api image
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mysql-api:latest ./mysql_api
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/mysql-api:latest
+
+    - name: Build and push mlflow-api image
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mlflow-api:latest ./mlflow_api
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/mlflow-api:latest

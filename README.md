@@ -130,6 +130,10 @@ El archivo orquesta las siguientes tareas:
 
 ---
 
+## Interpretabilidad
+
+![SHAP](imagenes/Stremlit_SHAP.png)
+
 ## 👥 Autores
 
 * [John Sanchez](https://github.com/JohnSanchez27)
@@ -137,5 +141,3 @@ El archivo orquesta las siguientes tareas:
 * Hugo Poveda Girata hpoveda
 
 ---
-
-¿Deseas que te lo entregue como `README.md` final para que lo subas directamente al repo?

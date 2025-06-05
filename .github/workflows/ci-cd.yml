@@ -31,7 +31,7 @@ jobs:
 
     - name: Build and push mysql-api image
       run: |
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mysql-api:latest ./mysql_api
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mysql-api:latest ./app_mysql
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/mysql-api:latest
 
     - name: Build and push mlflow-api image

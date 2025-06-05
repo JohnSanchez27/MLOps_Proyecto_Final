@@ -26,7 +26,7 @@ jobs:
 
     - name: Build and push app-fast image
       run: |
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/app-fast:latest ./app_fast
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/app-fast:latest ./app_back
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/app-fast:latest
 
     - name: Build and push mysql-api image

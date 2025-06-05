@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-composeMonitoreo.yml -o komposeMonitoreo/ --volumes hostPath
+    kompose.version: 1.26.0 (40646f47)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: prometheus
+  name: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: prometheus
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-composeMonitoreo.yml -o komposeMonitoreo/ --volumes hostPath
+        kompose.version: 1.26.0 (40646f47)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: prometheus
+    spec:
+      containers:
+        - image: prom/prometheus:latest
+          name: prometheus
+          ports:
+            - containerPort: 9090
+          resources: {}
+          volumeMounts:
+            - mountPath: /etc/prometheus/prometheus.yml
+              name: prometheus-hostpath0
+      restartPolicy: Always
+      volumes:
+        - hostPath:
+            path: /home/estudiante/Documents/proyecto-final-K/MLOps_Proyecto_Final/prometheus/prometheus.yml
+          name: prometheus-hostpath0
+status: {}

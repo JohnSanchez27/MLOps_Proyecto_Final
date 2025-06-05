@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-composeMonitoreo.yml -o komposeMonitoreo/ --volumes hostPath
+    kompose.version: 1.26.0 (40646f47)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: grafana
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: grafana
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-composeMonitoreo.yml -o komposeMonitoreo/ --volumes hostPath
+        kompose.version: 1.26.0 (40646f47)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: grafana
+    spec:
+      containers:
+        - env:
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: admin
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+          image: grafana/grafana:latest
+          name: grafana
+          ports:
+            - containerPort: 3000
+          resources: {}
+          volumeMounts:
+            - mountPath: /var/lib/grafana
+              name: grafana-data
+            - mountPath: /etc/grafana/provisioning/dashboards.yml
+              name: grafana-hostpath1
+            - mountPath: /etc/grafana/dashboards
+              name: grafana-hostpath2
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: grafana-hostpath3
+      restartPolicy: Always
+      volumes:
+        - hostPath:
+            path: /home/estudiante/Documents/proyecto-final-K/MLOps_Proyecto_Final
+          name: grafana-data
+        - hostPath:
+            path: /home/estudiante/Documents/proyecto-final-K/MLOps_Proyecto_Final/grafana/provisioning/dashboards.yml
+          name: grafana-hostpath1
+        - hostPath:
+            path: /home/estudiante/Documents/proyecto-final-K/MLOps_Proyecto_Final/grafana/provisioning/dashboards
+          name: grafana-hostpath2
+        - hostPath:
+            path: /home/estudiante/Documents/proyecto-final-K/MLOps_Proyecto_Final/grafana/provisioning/datasources
+          name: grafana-hostpath3
+status: {}

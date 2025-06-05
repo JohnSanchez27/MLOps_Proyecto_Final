@@ -2,7 +2,7 @@ import time
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 
-PASSWORD = 'Compag*87'
+PASSWORD = 'Compaq*87'
 HOST = '10.43.101.200:31306'  # Este es el nombre del servicio Docker, no 'localhost' mysql
 
 # Esperar hasta que MySQL esté disponible

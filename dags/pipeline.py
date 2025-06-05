@@ -30,11 +30,11 @@ TIMEOUT = 20
 rawdatadb_engine = connectionsdb[0]
 cleandatadb_engine = connectionsdb[1]
 
-os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://minio:9000'
-os.environ['AWS_ACCESS_KEY_ID'] = 'admin'
-os.environ['AWS_SECRET_ACCESS_KEY'] = 'supersecret'
+os.environ['MLFLOW_S3_ENDPOINT_URL'] = 'http://10.43.101.200:31900'
+os.environ['MINIO_ROOT_USER'] = 'admin'
+os.environ['MINIO_ROOT_PASSWORD'] = 'supersecret'
 
-mlflow.set_tracking_uri("http://mlflow_server:5000")
+mlflow.set_tracking_uri("http://10.43.101.200:31500") # "http://mlflow_server:5000")
 mlflow.set_experiment("Default")
 
 # ----- FASE 1: EXTRACCIÓN -----
@@ -192,7 +192,7 @@ from mlflow.exceptions import MlflowException
 
 def entrenar_y_guardar_modelo():
     try:
-        mlflow.set_tracking_uri("http://mlflow_server:5000")
+        mlflow.set_tracking_uri("http://10.43.101.200:31500")
         mlflow.set_experiment("entrenamiento_inmobiliario")
 
         ultimo_batch = obtener_ultimo_batch()

@@ -2,9 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    kompose.cmd: kompose convert -f docker-compose.yml -o komposefilesback/ --volumes hostPath
-    kompose.version: 1.26.0 (40646f47)
-  creationTimestamp: null
+    kompose.cmd: kompose -f docker-compose.yml convert -o manifestsBack/
+    kompose.version: 1.36.0 (ae2a39403)
   labels:
     io.kompose.service: streamlit
   name: streamlit
@@ -13,13 +12,11 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: streamlit
-  strategy: {}
   template:
     metadata:
       annotations:
-        kompose.cmd: kompose convert -f docker-compose.yml -o komposefilesback/ --volumes hostPath
-        kompose.version: 1.26.0 (40646f47)
-      creationTimestamp: null
+        kompose.cmd: kompose -f docker-compose.yml convert -o manifestsBack/
+        kompose.version: 1.36.0 (ae2a39403)
       labels:
         io.kompose.service: streamlit
     spec:
@@ -31,10 +28,9 @@ spec:
               value: "1"
             - name: TZ
               value: America/Bogota
-          image: johnsanchez27/app-front:latest
+          image: johnsanchez27/app-front:v2
           name: frontend-server
           ports:
             - containerPort: 8501
-          resources: {}
+              protocol: TCP
       restartPolicy: Always
-status: {}

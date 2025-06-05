@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
 
   fastapi:
-    image: johnsanchez27/app-back:latest
+    image: johnsanchez27/app-fast:retry1
     container_name: fastapi-server
     ports:
       - "8000:8000"
@@ -18,7 +16,7 @@ services:
   
 
   streamlit:
-    image: johnsanchez27/app-front:latest
+    image: johnsanchez27/app-front:retry1
     container_name: frontend-server
     ports:
       - "8501:8501"

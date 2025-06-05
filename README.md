@@ -125,7 +125,7 @@ El archivo orquesta las siguientes tareas:
 
 ## Dashboard Kubernets
 
-![Pods](imagenes/WhatsApp Image 2025-06-05 at 12.14.28 AM.jpeg)
+![Pods](imagenes/Kubernet.png)
 ---
 ## 📈 Monitoreo
 

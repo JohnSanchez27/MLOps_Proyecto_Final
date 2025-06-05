@@ -1,5 +1,3 @@
-Gracias por compartir el contenido del README y la imagen del diseño del clúster. A continuación te presento una versión consolidada y actualizada del README, integrando lo que ya tenías, la imagen del clúster y el contexto real de despliegue (Kubernetes para todos los servicios excepto Airflow):
-
 ---
 
 # 📌 Proyecto Final MLOps - Entrenamiento y Monitoreo de Modelos
@@ -136,6 +134,7 @@ El archivo orquesta las siguientes tareas:
 
 * [John Sanchez](https://github.com/JohnSanchez27)
 * [Santiago González Meneses](https://github.com/santigonzalez13)
+* Hugo Poveda Girata hpoveda
 
 ---
 
